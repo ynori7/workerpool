@@ -50,7 +50,46 @@ workerPool := NewWorkerPool(
     })
 
 //Do the work
-if err := workerPool.Work([]int{1, 2, 3, 4, 5, 6, 7}); err != nil {
+if err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7}); err != nil {
     log.Println(err.Error())
 }
 ```
+
+###Cancelling the jobs
+
+Sometimes you may want to stop processing early if, for example, enough results have 
+been found. This can be done by canceling the context passed into the worker pool:
+
+```
+ctx, cancel := context.WithCancel(context.Background())
+
+successes := make([]int, 0)
+
+workerPool := NewWorkerPool(
+    3, //The number of workers which should work in parallel
+    func(result interface{}) { //On success
+        r := result.(int)
+        successes = append(successes, r) 
+        if len(successes) > 3 {
+            cancel() //we have enough results
+        }
+    },
+    func(err error) { //On error
+        log.Println(err.Error())
+    },
+    func(job interface{}) (result interface{}, err error) { //Do work
+        j := job.(int)
+        if j > 4 {
+            return nil, fmt.Errorf("number too big: %d", j)
+        }
+        return j, nil
+    })
+
+//Do the work
+if err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7}); err != nil {
+    log.Println(err.Error())
+}
+```
+In the above code, once 3 successes have been found, it will signal the worker pool
+to 
+stop processing futher.

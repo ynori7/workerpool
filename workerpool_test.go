@@ -1,6 +1,7 @@
 package workerpool
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -33,7 +34,7 @@ func Test_DoWork(t *testing.T) {
 		})
 
 	//when
-	err := workerPool.Work([]int{1, 2, 3, 4, 5, 6, 7})
+	err := workerPool.Work(context.Background(), []int{1, 2, 3, 4, 5, 6, 7})
 
 	//then
 	require.NoError(t, err, "there should not have been an error")
@@ -53,8 +54,46 @@ func Test_DoWork_InputNotSlice(t *testing.T) {
 		})
 
 	//when
-	err := workerPool.Work(5)
+	err := workerPool.Work(context.Background(), 5)
 
 	//then
 	assert.Error(t, err, "there should have been an error")
+}
+
+func Test_DoWork_WithCancellation(t *testing.T) {
+	//given
+	expectedErr := fmt.Errorf("something went wrong")
+
+	errorCount := 0
+	successCount := 0
+	ctx, cancel := context.WithCancel(context.Background())
+
+	workerPool := NewWorkerPool(3,
+		func(result interface{}) {
+			r := result.(int)
+			assert.Equal(t, true, r <= 4)
+			successCount++
+		},
+		func(err error) {
+			assert.Error(t, expectedErr, err)
+			errorCount++
+			if errorCount == 2 {
+				cancel()
+			}
+		},
+		func(job interface{}) (result interface{}, err error) {
+			j := job.(int)
+			if j > 4 {
+				return nil, expectedErr
+			}
+			return j, nil
+		})
+
+	//when
+	err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7})
+
+	//then
+	require.NoError(t, err, "there should not have been an error")
+	assert.True(t, successCount + errorCount < 7, "not all the items should have been processed")
+	assert.Equal(t, 2, errorCount)
 }

@@ -1,6 +1,7 @@
 package workerpool
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 )
@@ -32,7 +33,7 @@ func NewWorkerPool(
 	}
 }
 
-func (w *WorkerPool) Work(jobsSlice interface{}) error {
+func (w *WorkerPool) Work(ctx context.Context, jobsSlice interface{}) error {
 	//validate input
 	jobs, err := interfaceToSlice(jobsSlice)
 	if err != nil {
@@ -57,12 +58,15 @@ func (w *WorkerPool) Work(jobsSlice interface{}) error {
 	}
 
 	//Process results
+WORK:
 	for i := 0; i < len(jobs); i++ {
 		select {
 		case r := <-resultsChan:
 			w.onSuccess(r)
 		case err := <-errorChan:
 			w.onError(err)
+		case <-ctx.Done():
+			break WORK //Stop processing. The workers will all be closed
 		}
 	}
 
