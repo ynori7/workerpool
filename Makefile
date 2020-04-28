@@ -1,4 +1,4 @@
-.PHONY: test test-verbose install-tools
+.PHONY: test test-verbose test-verbose-with-coverage lint install-tools
 
 export TEST_TIMEOUT_IN_SECONDS := 240
 export PKG := github.com/ynori7/workerpool
