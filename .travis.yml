@@ -10,6 +10,7 @@ go:
 
 install:
   - make install-tools
+  - go build
 
 script:
   - make lint
