@@ -1,8 +1,15 @@
-.PHONY: test test-verbose test-verbose-with-coverage lint install-tools
-
 export TEST_TIMEOUT_IN_SECONDS := 240
 export PKG := github.com/ynori7/workerpool
 export ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+install:
+	go install -v $(PKG)/...
+.PHONY: install
+
+install-dependencies:
+	go get -t -v $(PKG)/...
+	go test -i -v $(PKG)/...
+.PHONY: install-dependencies
 
 install-tools:
 	# linting
@@ -13,15 +20,20 @@ install-tools:
 	go get -u -v github.com/onsi/ginkgo/ginkgo/...
 	go get -u -v github.com/modocache/gover/...
 	go get -u -v github.com/mattn/goveralls/...
+.PHONY: install-tools
 
 lint:
 	$(ROOT_DIR)/scripts/lint.sh
+.PHONY: lint
 
 test:
 	go test -race -test.timeout "$(TEST_TIMEOUT_IN_SECONDS)s" ./... 
+.PHONY: test
 
 test-verbose:
 	go test -race -test.timeout "$(TEST_TIMEOUT_IN_SECONDS)s" -v ./... 
+.PHONY: test-verbose
 
 test-verbose-with-coverage:
 	go test -race -coverprofile workerpool.coverprofile -test.timeout "$(TEST_TIMEOUT_IN_SECONDS)s" -v ./...
+.PHONY: test-verbose-with-coverage
