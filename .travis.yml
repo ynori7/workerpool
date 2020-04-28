@@ -10,8 +10,8 @@ go:
 
 install:
   - make install-tools
-  - install-dependencies
-  - install
+  - make install-dependencies
+  - make install
 
 script:
   - make lint
