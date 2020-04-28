@@ -55,7 +55,7 @@ if err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7}); err != nil {
 }
 ```
 
-###Cancelling the jobs
+### Cancelling the jobs
 
 Sometimes you may want to stop processing early if, for example, enough results have 
 been found. This can be done by canceling the context passed into the worker pool:
