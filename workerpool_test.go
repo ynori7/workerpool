@@ -75,11 +75,11 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 			successCount++
 		},
 		func(err error) {
-			assert.Error(t, expectedErr, err)
-			errorCount++
-			if errorCount == 2 {
+			if errorCount >= 1 {
 				cancel()
 			}
+			assert.Error(t, expectedErr, err)
+			errorCount++
 		},
 		func(job interface{}) (result interface{}, err error) {
 			j := job.(int)
@@ -90,10 +90,10 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 		})
 
 	//when
-	err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7})
+	err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7, 8})
 
 	//then
 	require.NoError(t, err, "there should not have been an error")
-	assert.True(t, successCount + errorCount < 7, "not all the items should have been processed")
-	assert.Equal(t, 2, errorCount)
+	assert.True(t, successCount+errorCount < 8, "not all the items should have been processed")
+	assert.True(t, errorCount >= 2 && errorCount <= 3) //depending on exactly which values were being processed at the same time, it could be 2 or 3
 }

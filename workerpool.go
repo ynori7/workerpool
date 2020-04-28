@@ -7,23 +7,25 @@ import (
 )
 
 type (
-	SuccessFunc func(result interface{})
-	ErrorFunc   func(err error)
-	DoWorkFunc  func(job interface{}) (result interface{}, err error)
+	successFunc func(result interface{})
+	errorFunc   func(err error)
+	doWorkFunc  func(job interface{}) (result interface{}, err error)
 )
 
+// WorkerPool abstracts the setup around creating worker pools.
 type WorkerPool struct {
 	workerCount int
-	onSuccess   SuccessFunc
-	onError     ErrorFunc
-	doWork      DoWorkFunc
+	onSuccess   successFunc
+	onError     errorFunc
+	doWork      doWorkFunc
 }
 
+// NewWorkerPool creates a new WorkerPool instance with the given onSuccess, onError, and doWork callbacks.
 func NewWorkerPool(
 	workerCount int,
-	onSuccess SuccessFunc,
-	onError ErrorFunc,
-	doWork DoWorkFunc,
+	onSuccess successFunc,
+	onError errorFunc,
+	doWork doWorkFunc,
 ) *WorkerPool {
 	return &WorkerPool{
 		workerCount: workerCount,
@@ -33,6 +35,8 @@ func NewWorkerPool(
 	}
 }
 
+// Work spawns the workers and creates the concurrency control channels, and then distributes the given jobs to each worker.
+// When the given context is canceled, the work will be halted. An error is returned if the given jobSlice is not a slice.
 func (w *WorkerPool) Work(ctx context.Context, jobsSlice interface{}) error {
 	//validate input
 	jobs, err := interfaceToSlice(jobsSlice)
