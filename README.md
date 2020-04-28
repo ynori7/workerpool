@@ -13,7 +13,7 @@ a result or an error.
 
 The worker pool is defined as follow:
 
-```
+```go
 func NewWorkerPool(
 	workerCount int,
 	onSuccess SuccessFunc,
@@ -29,7 +29,7 @@ which works concurrently.
 
 Here is a short example:
 
-```
+```go
 successes := make([]int, 0)
 
 workerPool := NewWorkerPool(
@@ -60,7 +60,7 @@ if err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7}); err != nil {
 Sometimes you may want to stop processing early if, for example, enough results have 
 been found. This can be done by canceling the context passed into the worker pool:
 
-```
+```go
 ctx, cancel := context.WithCancel(context.Background())
 
 successes := make([]int, 0)
