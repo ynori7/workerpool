@@ -1,4 +1,4 @@
-# Worker Pool [![GoDoc](https://godoc.org/github.com/ynori7/workerpool?status.png)](https://godoc.org/github.com/ynori7/workerpool) [![Build Status](https://travis-ci.org/ynori7/workerpool.svg?branch=master)](https://travis-ci.org/ynori7/workerpool) [![Coverage Status](https://coveralls.io/repos/ynori7/workerpool/badge.png?branch=master)](https://coveralls.io/r/ynori7/workerpool?branch=master)
+# Worker Pool [![GoDoc](https://godoc.org/github.com/ynori7/workerpool?status.png)](https://godoc.org/github.com/ynori7/workerpool) [![Build Status](https://travis-ci.org/ynori7/workerpool.svg?branch=master)](https://travis-ci.org/ynori7/workerpool) [![Coverage Status](https://coveralls.io/repos/github/ynori7/workerpool/badge.svg?branch=master)](https://coveralls.io/github/ynori7/workerpool?branch=master) [![Go Report Card](https://goreportcard.com/badge/ynori7/workerpool)](https://goreportcard.com/report/github.com/ynori7/workerpool)
 The worker pool library abstracts the setup around creating worker pools, so all
 you need to take care of is the actual business logic.
 
