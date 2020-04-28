@@ -68,7 +68,7 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 	successCount := 0
 	ctx, cancel := context.WithCancel(context.Background())
 
-	workerPool := NewWorkerPool(3,
+	workerPool := NewWorkerPool(1,
 		func(result interface{}) {
 			if successCount >= 1 {
 				cancel()
@@ -78,9 +78,6 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 			successCount++
 		},
 		func(err error) {
-			if errorCount >= 1 {
-				cancel()
-			}
 			assert.Error(t, expectedErr, err)
 			errorCount++
 		},
@@ -97,6 +94,6 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 
 	//then
 	require.NoError(t, err, "there should not have been an error")
-	assert.True(t, successCount <= 3, "not all the items should have been processed")
-	assert.True(t, errorCount <= 3) //depending on exactly which values were being processed at the same time, it could up to three
+	assert.True(t, successCount < 4)
+	assert.Equal(t, 0, errorCount, "not all the items should have been processed")
 }
