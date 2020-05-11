@@ -14,43 +14,43 @@ type (
 
 // WorkerPool abstracts the setup around creating worker pools.
 type WorkerPool struct {
-	workerCount int
-	onSuccess   successFunc
-	onError     errorFunc
-	doWork      doWorkFunc
+	onSuccess successFunc
+	onError   errorFunc
+	doWork    doWorkFunc
 }
 
 // NewWorkerPool creates a new WorkerPool instance with the given onSuccess, onError, and doWork callbacks.
 func NewWorkerPool(
-	workerCount int,
 	onSuccess successFunc,
 	onError errorFunc,
 	doWork doWorkFunc,
 ) *WorkerPool {
 	return &WorkerPool{
-		workerCount: workerCount,
-		onSuccess:   onSuccess,
-		onError:     onError,
-		doWork:      doWork,
+		onSuccess: onSuccess,
+		onError:   onError,
+		doWork:    doWork,
 	}
 }
 
 // Work spawns the workers and creates the concurrency control channels, and then distributes the given jobs to each worker.
 // When the given context is canceled, the work will be halted. An error is returned if the given jobSlice is not a slice.
-func (w *WorkerPool) Work(ctx context.Context, jobsSlice interface{}) error {
+func (w *WorkerPool) Work(ctx context.Context, workerCount int, jobsSlice interface{}) error {
 	//validate input
 	jobs, err := interfaceToSlice(jobsSlice)
 	if err != nil {
 		return err
 	}
+	if workerCount < 1 {
+		return fmt.Errorf("there must be at least one worker")
+	}
 
-	resultsChan := make(chan interface{}, w.workerCount)
-	errorChan := make(chan error, w.workerCount)
+	resultsChan := make(chan interface{}, workerCount)
+	errorChan := make(chan error, workerCount)
 
 	//Spawn workers to process in parallel
-	workers := make([]chan interface{}, w.workerCount)
-	for i := 0; i < w.workerCount; i++ {
-		workers[i] = make(chan interface{}, len(jobs)/w.workerCount)
+	workers := make([]chan interface{}, workerCount)
+	for i := 0; i < workerCount; i++ {
+		workers[i] = make(chan interface{}, len(jobs)/workerCount)
 		go w.worker(resultsChan, errorChan, workers[i])
 	}
 
@@ -58,7 +58,7 @@ func (w *WorkerPool) Work(ctx context.Context, jobsSlice interface{}) error {
 	var i = 0
 	for _, s := range jobs {
 		workers[i] <- s
-		i = (i + 1) % w.workerCount
+		i = (i + 1) % workerCount
 	}
 
 	//Process results

@@ -33,7 +33,6 @@ Here is a short example:
 successes := make([]int, 0)
 
 workerPool := NewWorkerPool(
-    3, //The number of workers which should work in parallel
     func(result interface{}) { //On success
         r := result.(int)
         successes = append(successes, r) 
@@ -50,7 +49,11 @@ workerPool := NewWorkerPool(
     })
 
 //Do the work
-if err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7}); err != nil {
+if err := workerPool.Work(
+	    ctx,
+	    3, //The number of workers which should work in parallel
+	    []int{1, 2, 3, 4, 5, 6, 7}, //The items to be processed
+	); err != nil {
     log.Println(err.Error())
 }
 ```

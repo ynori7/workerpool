@@ -15,7 +15,7 @@ func Test_DoWork(t *testing.T) {
 
 	errorCount := 0
 	successCount := 0
-	workerPool := NewWorkerPool(3,
+	workerPool := NewWorkerPool(
 		func(result interface{}) {
 			r := result.(int)
 			assert.Equal(t, true, r <= 4)
@@ -34,7 +34,7 @@ func Test_DoWork(t *testing.T) {
 		})
 
 	//when
-	err := workerPool.Work(context.Background(), []int{1, 2, 3, 4, 5, 6, 7})
+	err := workerPool.Work(context.Background(), 3, []int{1, 2, 3, 4, 5, 6, 7})
 
 	//then
 	require.NoError(t, err, "there should not have been an error")
@@ -42,9 +42,31 @@ func Test_DoWork(t *testing.T) {
 	assert.Equal(t, 3, errorCount)
 }
 
-func Test_DoWork_InputNotSlice(t *testing.T) {
+func Test_DoWork_Error(t *testing.T) {
 	//given
-	workerPool := NewWorkerPool(3,
+	testcases := map[string]struct {
+		workerCount int
+		jobs        interface{}
+		expectedErr error
+	}{
+		"input not slice": {
+			workerCount: 1,
+			jobs:        5,
+			expectedErr: fmt.Errorf("input is not a slice"),
+		},
+		"zero workers": {
+			workerCount: 0,
+			jobs:        []int{5},
+			expectedErr: fmt.Errorf("there must be at least one worker"),
+		},
+		"negative workers": {
+			workerCount: -1,
+			jobs:        []int{5},
+			expectedErr: fmt.Errorf("there must be at least one worker"),
+		},
+	}
+
+	workerPool := NewWorkerPool(
 		func(result interface{}) {
 		},
 		func(err error) {
@@ -53,11 +75,14 @@ func Test_DoWork_InputNotSlice(t *testing.T) {
 			return nil, nil
 		})
 
-	//when
-	err := workerPool.Work(context.Background(), 5)
+	for testcase, testdata := range testcases {
+		//when
+		err := workerPool.Work(context.Background(), testdata.workerCount, testdata.jobs)
 
-	//then
-	assert.Error(t, err, "there should have been an error")
+		//then
+		require.Error(t, err, "there should have been an error", testcase)
+		assert.EqualError(t, err, testdata.expectedErr.Error())
+	}
 }
 
 func Test_DoWork_WithCancellation(t *testing.T) {
@@ -68,7 +93,7 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 	successCount := 0
 	ctx, cancel := context.WithCancel(context.Background())
 
-	workerPool := NewWorkerPool(1,
+	workerPool := NewWorkerPool(
 		func(result interface{}) {
 			if successCount >= 1 {
 				cancel()
@@ -90,7 +115,7 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 		})
 
 	//when
-	err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7, 8})
+	err := workerPool.Work(ctx, 1, []int{1, 2, 3, 4, 5, 6, 7, 8})
 
 	//then
 	require.NoError(t, err, "there should not have been an error")
