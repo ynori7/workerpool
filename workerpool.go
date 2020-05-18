@@ -43,9 +43,13 @@ func (w *WorkerPool) Work(ctx context.Context, workerCount int, jobsSlice interf
 	if workerCount < 1 {
 		return fmt.Errorf("there must be at least one worker")
 	}
+	jobCount := len(jobs)
+	if jobCount < 1 {
+		return nil // no work to do, so just return
+	}
 
-	resultsChan := make(chan interface{}, workerCount)
-	errorChan := make(chan error, workerCount)
+	resultsChan := make(chan interface{}, jobCount)
+	errorChan := make(chan error, jobCount)
 
 	//Spawn workers to process in parallel
 	workers := make([]chan interface{}, workerCount)
@@ -65,12 +69,12 @@ func (w *WorkerPool) Work(ctx context.Context, workerCount int, jobsSlice interf
 WORK:
 	for i := 0; i < len(jobs); i++ {
 		select {
+		case <-ctx.Done():
+			break WORK //Stop processing. The workers will all be closed
 		case r := <-resultsChan:
 			w.onSuccess(r)
 		case err := <-errorChan:
 			w.onError(err)
-		case <-ctx.Done():
-			break WORK //Stop processing. The workers will all be closed
 		}
 	}
 

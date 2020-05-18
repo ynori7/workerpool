@@ -3,10 +3,10 @@ package workerpool
 import (
 	"context"
 	"fmt"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"testing"
+	"time"
 )
 
 func Test_DoWork(t *testing.T) {
@@ -103,11 +103,15 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 			successCount++
 		},
 		func(err error) {
+			if errorCount >= 1 {
+				cancel()
+			}
 			assert.Error(t, expectedErr, err)
 			errorCount++
 		},
 		func(job interface{}) (result interface{}, err error) {
 			j := job.(int)
+			time.Sleep(50 * time.Millisecond)
 			if j > 4 {
 				return nil, expectedErr
 			}
@@ -119,6 +123,6 @@ func Test_DoWork_WithCancellation(t *testing.T) {
 
 	//then
 	require.NoError(t, err, "there should not have been an error")
-	assert.True(t, successCount < 4)
-	assert.Equal(t, 0, errorCount, "not all the items should have been processed")
+	assert.Equal(t, successCount, 2)
+	assert.Equal(t, errorCount, 0)
 }
