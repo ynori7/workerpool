@@ -89,7 +89,7 @@ workerPool := NewWorkerPool(
     })
 
 //Do the work
-if err := workerPool.Work(ctx, []int{1, 2, 3, 4, 5, 6, 7}); err != nil {
+if err := workerPool.Work(ctx, 3, []int{1, 2, 3, 4, 5, 6, 7}); err != nil {
     log.Println(err.Error())
 }
 ```
