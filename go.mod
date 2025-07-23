@@ -1,4 +1,4 @@
-module github/ynori7/workerpool
+module github.com/ynori7/workerpool
 
 go 1.20
 
